@@ -1,0 +1,210 @@
+TATA CARA PENGGUNAAN
+APLIKASI QR CODE GENERATOR & MANAGER
+
+
+A. Persyaratan Penggunaan
+
+1. Komputer atau laptop yang tersambung ke internet.
+2. Browser modern, misalnya Google Chrome, Microsoft Edge, Mozilla Firefox, atau Safari.
+3. Kamera ponsel untuk menguji hasil QR Code.
+4. Printer jika ingin mencetak hasil QR Code.
+5. Koneksi internet diperlukan saat aplikasi memuat pustaka Tailwind CSS, Font Awesome, QR code-generator, Google Fonts, dan SQL.js.
+
+
+B. Membuka Aplikasi
+
+1. Buka folder yang berisi file QR-CODE_GENERATOR.html.
+2. Klik dua kali file tersebut.
+3. File akan terbuka pada browser bawaan.
+4. Tunggu beberapa saat hingga tabel database dan logo siap digunakan.
+
+Catatan: QR Code dapat dibuat meskipun aplikasi dibuka langsung dari penyimpanan lokal. Untuk penggunaan yang stabil, disarankan membuka aplikasi melalui web server atau localhost.
+
+
+C. Membuat QR Code
+
+1. Pada bagian "Target URL / Data Teks", masukkan alamat web atau data teks yang ingin dienkode.
+2. Contoh: https://smpn90.sch.id
+3. Pastikan alamat dimulai dengan http:// atau https:// agar dapat dibuka dengan benar pada hasil pemindaian.
+4. Pada kolom "Label / Keterangan Arsip", masukkan nama atau keterangan QR Code.
+5. QR Code akan diperbarui secara otomatis. Pengguna juga dapat menekan tombol "Perbarui QR" untuk memperbarui tampilan secara manual.
+
+
+D. Mengatur Logo di Tengah QR
+
+1. Pastikan sakelar "Logo di Tengah QR" dalam keadaan aktif.
+2. Untuk menggunakan logo sekolah, tekan tombol "Preset SMPN 90".
+3. Untuk menggunakan logo lain, tekan "Upload Logo", pilih file gambar, lalu tunggu logo muncul pada preview.
+4. Geser "Ukuran Logo Tengah" untuk mengubah ukuran logo.
+5. Ukuran 22 persen disarankan sebagai pengaturan awal.
+6. Untuk menghilangkan logo, nonaktifkan sakelar "Logo di Tengah QR".
+
+Catatan: Hindari ukuran logo yang terlalu besar atau tingkat koreksi yang terlalu rendah agar QR Code tetap mudah dipindai.
+
+
+E. Mengatur Teks pada QR Code
+
+1. Aktifkan "Tampilkan SCAN ME" jika ingin menampilkan tulisan ajakan pemindaian.
+2. Aktifkan "Tampilkan URL di Bawah" jika ingin menampilkan target alamat pada bagian bawah QR Code.
+3. Jika URL terlalu panjang, aplikasi akan menampilkan potongan ringkas pada area teks.
+
+
+F. Memilih Tingkat Koreksi Kesalahan
+
+1. Pilih tingkat koreksi pada pilihan "Tingkat Koreksi (ECL)".
+2. Pilihan tersedia:
+   - High (H): sekitar 30 persen, disarankan jika menggunakan logo.
+   - Quartile (Q): sekitar 25 persen.
+   - Medium (M): sekitar 15 persen.
+   - Low (L): sekitar 7 persen.
+3. Tingkat koreksi High dipilih secara otomatis.
+
+
+G. Melihat dan Menguji Preview
+
+1. Preview QR Code ditampilkan pada area kanan layar.
+2. Ukuran preview menyesuaikan layar, tetapi hasil ekspor tetap beresolusi 1200 x 1200 piksel.
+3. Tekan "Tes Buka URL" untuk mencoba membuka alamat target pada tab baru.
+4. Pastikan URL yang dituju dapat diakses dan tidak salah ketik.
+
+
+H. Mengunduh QR Code sebagai PNG
+
+1. Tekan tombol "Unduh PNG HD (10x10 cm)".
+2. Browser akan mengunduh file PNG beresolusi tinggi.
+3. Nama file akan memuat tanggal dan waktu sistem.
+4. File dapat digunakan pada Microsoft Word, Canva, CorelDRAW, PowerPoint, atau aplikasi desain lain.
+5. Jika gambar ditempatkan pada dokumen, atur ukurannya menjadi 10 x 10 cm dan hindari stretching yang mengubah proporsi.
+
+
+I. Mencetak QR Code
+
+1. Pastikan printer telah terpasang dan memiliki kertas yang sesuai.
+2. Tekan tombol "Cetak Sekarang (10x10 cm)".
+3. Pada jendela cetak browser, pilih:
+   - Ukuran kertas: 100 x 100 mm atau ukuran paling mendekati.
+   - Margins: None atau Tanpa Margin.
+   - Scale: 100 persen.
+   - Orientation: Portrait.
+4. Pastikan opsi Headers and Footers tidak aktif.
+5. Tekan Print untuk mencetak.
+
+Untuk hasil cetak terbaik:
+- Gunakan kertas minimal 120 gsm.
+- Cetak dengan mode warna hitam untuk ketajaman maksimal.
+- Hindari hasil cetak yang buram atau terlalu redup.
+- Uji pemindaian sebelum dipasang permanen.
+
+
+J. Menguji Hasil dengan Ponsel
+
+1. Buka aplikasi kamera atau pemindai QR pada ponsel.
+2. Arahkan kamera pada QR Code.
+3. Tunggu hingga ponsel menampilkan tautan atau data.
+4. Tekan tautan tersebut untuk memastikan alamat tujuan benar.
+5. Jika QR Code tidak terbaca:
+   - Pastikan pencahayaan cukup.
+   - Perbesar jarak atau dekatkan ponsel.
+   - Hindari bayangan pada QR Code.
+   - Kurangi ukuran logo.
+   - Pilih tingkat koreksi yang lebih tinggi.
+   - Cetak ulang dengan resolusi yang tidak terpotong.
+
+
+K. Menyimpan Rancangan ke Database SQLite
+
+1. Lengkapi URL atau data teks dan label arsip.
+2. Aktifkan atau nonaktifkan logo sesuai kebutuhan.
+3. Tekan "Simpan ke SQLite".
+4. Rancangan akan tampil pada tabel "Riwayat SQLite Database".
+5. Tabel menampilkan ID, label, URL, status logo, waktu penyimpanan, dan tombol aksi.
+
+Catatan: Database SQLite saat ini bekerja dalam memori browser. Segera ekspor database jika riwayat perlu disimpan secara permanen.
+
+
+L. Memuat Ulang Rancangan
+
+1. Temukan rancangan pada tabel riwayat.
+2. Tekan tombol dengan ikon putar pada kolom Aksi.
+3. URL dan label rancangan akan dimuat ke kotak input.
+4. Lakukan perubahan jika diperlukan.
+5. Tekan "Perbarui QR" atau biarkan perubahan diproses otomatis.
+
+
+M. Menghapus Rancangan
+
+1. Temukan rancangan yang ingin dihapus pada tabel riwayat.
+2. Tekan tombol dengan ikon tempat sampah.
+3. Rancangan akan dihapus dari database browser.
+4. Hapus data yang tidak lagi diperlukan agar riwayat tetap tertata.
+
+
+N. Mengekspor Database SQLite
+
+1. Tekan tombol "Ekspor .sqlite".
+2. Browser akan mengunduh file database.
+3. Nama file menggunakan format smpn90_qrcodes_TANGGAL.sqlite.
+4. Simpan file pada folder aman sebagai cadangan.
+5. File tersebut dapat digunakan kembali pada komputer lain.
+
+
+O. Mengimpor Database SQLite
+
+1. Tekan "Impor .sqlite".
+2. Pilih file .sqlite atau .db yang valid.
+3. Tunggu sampai aplikasi menampilkan notifikasi bahwa database berhasil diimpor.
+4. Riwayat pada tabel akan diperbarui sesuai isi file database.
+
+Jika muncul pesan "File bukan database SQLite valid", pastikan file berasal dari ekspor aplikasi atau merupakan file SQLite yang memang valid.
+
+
+P. Mengembalikan Pengaturan Awal
+
+1. Tekan tombol "Reset".
+2. Pengaturan akan kembali ke nilai awal:
+   - URL: http://smpn90.sch.id/cs/index.php
+   - Label: Customer Service SMPN 90
+   - Logo: aktif
+   - Ukuran logo: 22 persen
+   - SCAN ME: aktif
+   - URL bawah: tidak aktif
+   - Koreksi kesalahan: High
+
+
+Q. Mengatasi Masalah Umum
+
+1. QR Code tidak muncul
+   - Muat ulang halaman.
+   - Periksa koneksi internet untuk pustaka JavaScript.
+   - Pastikan browser mendukung JavaScript.
+
+2. Logo tidak muncul
+   - Pastikan sakelar logo aktif.
+   - Pilih preset logo atau unggah kembali file logo.
+   - Gunakan gambar dengan format PNG, JPEG, atau SVG.
+
+3. QR terlalu panjang untuk dibuat
+   - Perpendek URL.
+   - Gunakan short link atau pengalihan URL.
+   - Kurangi teks yang dimasukkan.
+
+4. Database tidak dapat dimuat atau disimpan
+   - Tunggu status "Mesin SQLite WebAssembly aktif".
+   - Muat ulang halaman.
+   - Jika database eksternal digunakan, pastikan file berformat SQLite valid.
+
+5. Hasil cetak tidak berukuran tepat
+   - Pilih kertas 100 x 100 mm.
+   - Matikan margin.
+   - Pastikan skala dicetak 100 persen.
+   - Jangan memilih "Fit to Page" jika ukuran presisi diperlukan.
+
+
+R. Kesimpulan Penggunaan
+
+Penggunaan aplikasi terdiri atas lima tahapan utama:
+1. Masukkan URL atau data teks.
+2. Tambahkan dan atur logo serta tampilan.
+3. Pilih tingkat koreksi kesalahan.
+4. Unduh atau cetak QR Code.
+5. Simpan, ekspor, atau kelola riwayat pada database SQLite.

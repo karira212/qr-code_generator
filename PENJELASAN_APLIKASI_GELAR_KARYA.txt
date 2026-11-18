@@ -1,0 +1,134 @@
+PENJELASAN APLIKASI
+QR CODE GENERATOR & MANAGER BERBASIS WEB
+UNTUK GELAR KARYA GURU INFORMATIKA
+
+1. Nama dan Profil Aplikasi
+
+Aplikasi ini bernama "QR Code Generator & Manager". Aplikasi berbasis web tersebut dirancang untuk membuat, mengelola, mengunduh, dan mencetak QR Code berukuran presisi 10 x 10 cm. Aplikasi dapat digunakan langsung melalui browser tanpa proses instalasi program.
+
+Aplikasi dikembangkan untuk mendukung layanan informasi dan administrasi digital di SMP Negeri 90 Jakarta. Aplikasi ini diciptakan oleh Turino Hadisaputro dan memanfaatkan teknologi web modern, QR Code, kanvas digital, serta database SQLite di browser.
+
+
+2. Latar Belakang
+
+Perkembangan teknologi digital menuntut sekolah memiliki sarana yang cepat, praktis, dan mudah diakses oleh warga sekolah. QR Code dapat menjadi jembatan antara media cetak dan layanan digital. Pengguna cukup memindai QR Code dengan kamera ponsel untuk membuka tautan tertentu, seperti situs layanan, formulir, presensi, atau dokumen sekolah.
+
+Namun, pembuatan QR Code dengan logo sekolah serta pencetakan dalam ukuran yang konsisten sering memerlukan aplikasi berbayar atau proses manual yang rumit. Oleh karena itu, dikembangkan aplikasi yang dapat menghasilkan QR Code profesional, menyimpan riwayat desain, dan mencetaknya secara presisi dalam satu tampilan.
+
+
+3. Tujuan Aplikasi
+
+Tujuan umum aplikasi adalah menyediakan sarana pembuatan QR Code yang praktis, aman, fleksibel, dan dapat digunakan secara mandiri oleh guru atau tenaga kependidikan.
+
+Tujuan khusus aplikasi adalah:
+a. Mempermudah penyediaan akses menuju laman atau data digital sekolah.
+b. Menyediakan QR Code dengan identitas visual SMP Negeri 90 Jakarta.
+c. Menghasilkan gambar berkualitas tinggi untuk cetak berukuran 10 x 10 cm.
+d. Mengelola riwayat URL, label, dan desain QR Code.
+e. Mendukung dokumentasi serta proses pengarsipan menggunakan database SQLite.
+f. Menjadi contoh pemanfaatan teknologi informatika untuk penyelesaian masalah nyata di sekolah.
+
+
+4. Fungsi Utama Aplikasi
+
+A. Membuat QR Code
+Pengguna memasukkan alamat URL atau teks, kemudian aplikasi mengubah data tersebut menjadi matriks QR Code. Perubahan tampilannya dapat dilihat langsung pada area preview.
+
+B. Menambahkan Logo
+Aplikasi menyediakan logo preset SMP Negeri 90 Jakarta dalam bentuk SVG dan memungkinkan pengguna mengunggah logo lain. Ukuran logo dapat diatur antara 15 persen hingga 28 persen dari luas QR Code.
+
+C. Mengatur Tampilan
+Pengguna dapat menampilkan atau menyembunyikan tulisan "SCAN ME", menampilkan atau menyembunyikan URL, serta memilih tingkat koreksi kesalahan QR Code. Tingkat koreksi High direkomendasikan karena mampu memperbaiki bagian kode hingga sekitar 30 persen dan aman digunakan bersama logo.
+
+D. Menyimpan Data ke SQLite
+Aplikasi menggunakan SQL.js berbasis WebAssembly. Label, URL, waktu penyimpanan, dan informasi penggunaan logo dapat disimpan pada database SQLite yang berjalan di dalam browser.
+
+E. Mengelola Riwayat
+Pengguna dapat melihat daftar arsip, memuat kembali arsip ke editor, menghapus arsip, mengekspor database menjadi file .sqlite, serta mengimpor file database SQLite yang sudah disimpan.
+
+F. Mengunduh dan Mencetak
+QR Code dapat diunduh dalam format PNG beresolusi 1200 x 1200 piksel dan dicetak pada kertas berukuran 10 x 10 cm. Pengaturan cetak direkomendasikan menggunakan Margins: None dan ukuran kertas 100 x 100 mm.
+
+
+5. Teknologi yang Digunakan
+
+1. HTML sebagai struktur halaman.
+2. Tailwind CSS sebagai kerangka tampilan antarmuka.
+3. JavaScript sebagai pengendali proses aplikasi.
+4. Library qrcode-generator untuk membentuk matriks QR Code.
+5. HTML Canvas untuk menggambar QR Code, logo, dan teks pada resolusi tinggi.
+6. SQL.js untuk menjalankan SQLite melalui WebAssembly di browser.
+7. Font Awesome dan Google Fonts untuk ikon serta tipografi.
+
+
+6. Manfaat untuk Sekolah
+
+Aplikasi ini dapat digunakan untuk berbagai kebutuhan, antara lain:
+- QR Code halaman profil sekolah.
+- QR Code layanan Customer Service sekolah.
+- QR Code presensi kegiatan atau rapat.
+- QR Code formulir evaluasi.
+- QR Code dokumen administrasi.
+- QR Code katalog perpustakaan atau referensi digital.
+- QR Code lokasi kegiatan atau brosur sekolah.
+
+
+7. Kelebihan dan Nilai Inovasi
+
+Kelebihan aplikasi ini meliputi:
+- Berjalan langsung pada browser tanpa instalasi.
+- Menyediakan identitas visual sekolah.
+- Memiliki tingkat koreksi kesalahan yang dapat dipilih.
+- Menyediakan preview sebelum dicetak.
+- Menghasilkan file beresolusi tinggi.
+- Mendukung penyimpanan dan ekspor basis data.
+- Mendukung pencetakan presisi berukuran 10 x 10 cm.
+- Data dapat dikelola secara lokal sebagai arsip.
+- Antarmuka mudah dipahami dan responsif pada perangkat desktop maupun seluler.
+
+Nilai inovasinya terletak pada penggabungan pembuat QR Code, editor logo, database SQLite, unduh PNG, dan pencetakan presisi dalam satu aplikasi berbasis web.
+
+
+8. Relevansi dengan Kompetensi Guru Informatika
+
+Aplikasi ini menunjukkan penerapan kemampuan guru Informatika dalam:
+- Perancangan antarmuka pengguna.
+- Pemrograman web menggunakan HTML, CSS, dan JavaScript.
+- Penggunaan library dan API browser.
+- Manipulasi grafik dengan HTML Canvas.
+- Pengelolaan data menggunakan SQLite.
+- Penyimpanan dan ekspor file.
+- Pemanfaatan teknologi untuk layanan pendidikan.
+- Pemecahan masalah kebutuhan sekolah secara kreatif dan mandiri.
+
+
+9. Skenario Penyajian pada Gelar Karya
+
+Urutan presentasi yang disarankan:
+1. Memperkenalkan latar belakang dan kebutuhan sekolah.
+2. Menjelaskan tujuan serta manfaat aplikasi.
+3. Mendemonstrasikan pembuatan QR Code dari URL.
+4. Menunjukkan penggunaan logo SMP Negeri 90 dan pengaturan koreksi kesalahan.
+5. Menunjukkan preview serta proses pengunduhan PNG.
+6. Menunjukkan penyimpanan data pada riwayat SQLite.
+7. Mendemonstrasikan ekspor, impor, dan muat ulang database.
+8. Memindai QR Code menggunakan kamera ponsel.
+9. Memperlihatkan hasil cetak berukuran 10 x 10 cm.
+10. Menyampaikan manfaat, dampak, serta rencana pengembangan berikutnya.
+
+
+10. Rencana Pengembangan
+
+Pengembangan lanjutan dapat mencakup:
+- Penyimpanan database permanen di server.
+- Pengelolaan akun pengguna dan hak akses.
+- Pembuatan QR Code dalam jumlah banyak.
+- Penambahan jenis data, seperti teks, Wi-Fi, nomor telepon, dan email.
+- Analisis jumlah pemindaian QR Code.
+- Integrasi dengan layanan sekolah atau learning management system.
+- Pembuatan laporan penggunaan QR Code.
+
+
+Kesimpulan
+
+QR Code Generator & Manager merupakan aplikasi digital yang sederhana, inovatif, dan tepat guna untuk mendukung transformasi layanan sekolah. Aplikasi ini menggabungkan kebutuhan desain, pencetakan, penyimpanan arsip, dan pengelolaan data dalam satu sistem berbasis web. Dengan aplikasi ini, guru Informatika dapat menjadi pelaku inovasi yang menghadirkan solusi teknologi yang langsung bermanfaat bagi warga sekolah.

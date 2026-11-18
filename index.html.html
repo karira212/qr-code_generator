@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Generator & Database Manager (10x10 cm)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- QR Code Library (qrcode-generator with high error correction H support) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <!-- SQLite via WebAssembly (sql.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-brand {
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* Aturan Cetak Presisi 10x10 cm */
+    @media print {
+      @page {
+        size: 10cm 10cm;
+        margin: 0;
+      }
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100vh !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      #print-area {
+        display: flex !important;
+        width: 10cm !important;
+        height: 10cm !important;
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Navbar / Header -->
+  <header class="no-print bg-gradient-to-r from-blue-900 via-indigo-900 to-sky-800 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-white/10 rounded-xl backdrop-blur border border-white/20 shadow-inner">
+          <i class="fa-solid fa-qrcode text-2xl text-sky-300"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            QR Code Generator &amp; Manager
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-500/30 text-sky-200 border border-sky-400/40">10×10 cm Ready</span>
+          </h1>
+          <p class="text-xs text-sky-100 font-light">Custom Logo • SQLite Database Engine • Cetak Presisi</p>
+        </div>
+      </div>
+      <div class="text-xs md:text-right bg-white/10 md:bg-transparent p-2 md:p-0 rounded-lg border border-white/10 md:border-none">
+        <div class="font-semibold text-sky-200">SMP Negeri 90 Jakarta</div>
+        <div class="text-slate-300 text-[11px]"> • By Turino Hadisaputro</div>
+        <div class="text-sky-300 font-mono text-[11px]"><i class="fa-brands fa-whatsapp text-emerald-400"></i> 081287172216</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Panel Kontrol Input (Kiri) -->
+      <div class="no-print lg:col-span-5 space-y-5">
+        
+        <!-- Kartu Pengaturan QR -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-blue-600"></i> Pengaturan QR-Code
+            </h2>
+            <button id="btn-reset" class="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+
+          <!-- Input URL -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Target URL / Data Teks <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">
+                <i class="fa-solid fa-link"></i>
+              </span>
+              <input type="text" id="input-url" 
+                value="http://smpn90.sch.id/cs/index.php" 
+                class="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm font-mono"
+                placeholder="https://contoh-domain.sch.id/cs/index.php">
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Data yang di-encode ke matriks QR.</p>
+          </div>
+
+          <!-- Input Judul / Label Record -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Label / Keterangan Arsip
+            </label>
+            <input type="text" id="input-title" 
+              value="Customer Service SMPN 90" 
+              class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm"
+              placeholder="Contoh: CS / Presensi Guru">
+          </div>
+
+          <!-- Pengaturan Logo Tengah -->
+          <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-image text-indigo-500"></i> Logo di Tengah QR
+              </span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-logo" class="sr-only peer" checked>
+                <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <div id="logo-options-container" class="space-y-3 pt-1">
+              <div class="flex items-center gap-2">
+                <button type="button" id="btn-preset-smp" class="flex-1 py-1.5 px-3 bg-white border border-blue-400 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-50 transition shadow-xs flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-school"></i> Preset SMPN 90
+                </button>
+                <label class="flex-1 py-1.5 px-3 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-100 transition shadow-xs cursor-pointer text-center truncate">
+                  <i class="fa-solid fa-cloud-arrow-up text-slate-500 mr-1"></i> Upload Logo
+                  <input type="file" id="file-logo" accept="image/*" class="hidden">
+                </label>
+              </div>
+
+              <!-- Ukuran Logo Slider -->
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-600 mb-1">
+                  <span>Ukuran Logo Tengah:</span>
+                  <span id="logo-size-val" class="font-bold text-blue-600">22%</span>
+                </div>
+                <input type="range" id="logo-size-slider" min="15" max="28" value="22" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <p class="text-[10px] text-slate-400 mt-1">Disarankan maks 25% agar tingkat error correction tetap aman terbaca.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opsi Visual Teks Bawah -->
+          <div class="space-y-2.5 pt-1">
+            <span class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Opsi Teks Label</span>
+            
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+              <span class="text-xs text-slate-700 font-medium">Tampilkan "SCAN ME"</span>
+              <input type="checkbox" id="check-show-scanme" checked class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+            </div>
+
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+              <div>
+                <span class="text-xs text-slate-700 font-medium block">Tampilkan URL di Bawah</span>
+                <span class="text-[10px] text-slate-400">Sembunyikan URL sesuai permintaan Anda</span>
+              </div>
+              <input type="checkbox" id="check-show-url" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <!-- Koreksi Error & Presets -->
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Tingkat Koreksi (ECL)</label>
+              <select id="select-ecl" class="w-full text-xs py-2 px-2.5 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="H" selected>High (H ~30% - Aman Logo)</option>
+                <option value="Q">Quartile (Q ~25%)</option>
+                <option value="M">Medium (M ~15%)</option>
+                <option value="L">Low (L ~7%)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Ukuran Cetak</label>
+              <div class="w-full text-xs py-2 px-2.5 rounded-lg border border-slate-200 bg-slate-100 text-slate-600 font-medium flex items-center justify-between">
+                <span>10 × 10 cm</span>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">1:1 Rasio</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol Aksi Simpan ke DB & Refresh -->
+          <div class="pt-2 flex flex-col sm:flex-row gap-2">
+            <button id="btn-generate" class="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-arrows-rotate"></i> Perbarui QR
+            </button>
+            <button id="btn-save-db" class="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan ke SQLite
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Area Tampilan / Canvas Preview (Kanan) -->
+      <div class="lg:col-span-7 flex flex-col space-y-4">
+        
+        <!-- Preview Box -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-center">
+          
+          <div class="no-print w-full flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <h3 class="font-bold text-sm text-slate-800">Preview Layout Rasio 10 × 10 cm</h3>
+            </div>
+            <span class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">Resolusi Ekspor: 1200×1200 px (300 DPI)</span>
+          </div>
+
+          <!-- Container Cetak 10x10 cm -->
+          <div id="print-area" class="relative bg-white border border-slate-300 rounded-xl shadow-lg flex flex-col items-center justify-center p-6 w-[340px] h-[340px] sm:w-[380px] sm:h-[380px] aspect-square transition-all duration-300">
+            <!-- Garis batas potong crop mark sudut (Simulasi cetak presisi) -->
+            <div class="absolute top-1 left-1 w-3 h-3 border-t-2 border-l-2 border-slate-400 pointer-events-none"></div>
+            <div class="absolute top-1 right-1 w-3 h-3 border-t-2 border-r-2 border-slate-400 pointer-events-none"></div>
+            <div class="absolute bottom-1 left-1 w-3 h-3 border-b-2 border-l-2 border-slate-400 pointer-events-none"></div>
+            <div class="absolute bottom-1 right-1 w-3 h-3 border-b-2 border-r-2 border-slate-400 pointer-events-none"></div>
+
+            <!-- Canvas Utama -->
+            <canvas id="qr-canvas" class="max-w-full max-h-full object-contain rounded-lg"></canvas>
+          </div>
+
+          <!-- Tombol Download & Print Action -->
+          <div class="no-print mt-5 w-full flex flex-wrap items-center justify-center gap-3">
+            <button id="btn-download-png" class="py-2.5 px-5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold shadow-md transition flex items-center gap-2">
+              <i class="fa-solid fa-download"></i> Unduh PNG HD (10x10 cm)
+            </button>
+            <button id="btn-print" class="py-2.5 px-5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-md transition flex items-center gap-2">
+              <i class="fa-solid fa-print"></i> Cetak Sekarang (10x10 cm)
+            </button>
+            <button id="btn-test-scan" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium border border-slate-300 transition flex items-center gap-1.5" title="Buka tautan langsung di tab baru untuk uji coba">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Tes Buka URL
+            </button>
+          </div>
+
+          <div class="no-print mt-3 text-center text-xs text-slate-400">
+            *Catatan: Pastikan opsi <em>Margins: None</em> dan ukuran kertas <em>100x100mm</em> pada dialog printer saat mencetak langsung.
+          </div>
+        </div>
+
+        <!-- Panel SQLite Database History -->
+        <div class="no-print bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-database text-emerald-600"></i> Riwayat SQLite Database (sql.js)
+              </h3>
+              <p class="text-xs text-slate-500">Tersimpan dalam memori browser &amp; dapat diekspor ke file <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">.sqlite</code></p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <button id="btn-export-db" class="text-xs py-1.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg font-medium transition flex items-center gap-1">
+                <i class="fa-solid fa-file-export"></i> Ekspor .sqlite
+              </button>
+              <label class="text-xs py-1.5 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg font-medium transition flex items-center gap-1 cursor-pointer">
+                <i class="fa-solid fa-file-import"></i> Impor .sqlite
+                <input type="file" id="file-import-db" accept=".sqlite,.db" class="hidden">
+              </label>
+            </div>
+          </div>
+
+          <!-- SQLite Status Banner -->
+          <div id="db-status-bar" class="text-xs py-1.5 px-3 rounded-lg bg-slate-50 text-slate-600 border border-slate-200 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-check text-emerald-500"></i> Mesin SQLite WebAssembly aktif
+            </span>
+            <span id="record-count" class="font-mono text-slate-700">0 Arsip tersimpan</span>
+          </div>
+
+          <!-- Tabel Riwayat -->
+          <div class="overflow-x-auto max-h-60 overflow-y-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 uppercase font-semibold sticky top-0 border-b border-slate-200">
+                <tr>
+                  <th class="p-2.5">ID</th>
+                  <th class="p-2.5">Label</th>
+                  <th class="p-2.5">Target URL</th>
+                  <th class="p-2.5">Logo</th>
+                  <th class="p-2.5">Waktu</th>
+                  <th class="p-2.5 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody" class="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td colspan="6" class="p-4 text-center text-slate-400">Belum ada data QR tersimpan. Klik "Simpan ke SQLite" untuk menyimpan rancangan.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Notifikasi Toast -->
+  <div id="toast" class="no-print fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700 text-xs">
+      <i id="toast-icon" class="fa-solid fa-circle-info text-sky-400 text-sm"></i>
+      <span id="toast-msg">Pesan notifikasi</span>
+    </div>
+  </div>
+
+  <!-- Script Logika QR, Logo, Canvas & SQLite -->
+  <script>
+    // Inisialisasi State Aplikasi
+    let db = null;
+    let SQL = null;
+    let currentLogoImage = null;
+
+    // Elemen DOM
+    const inputUrl = document.getElementById('input-url');
+    const inputTitle = document.getElementById('input-title');
+    const toggleLogo = document.getElementById('toggle-logo');
+    const logoOptionsContainer = document.getElementById('logo-options-container');
+    const logoSizeSlider = document.getElementById('logo-size-slider');
+    const logoSizeVal = document.getElementById('logo-size-val');
+    const checkShowScanme = document.getElementById('check-show-scanme');
+    const checkShowUrl = document.getElementById('check-show-url');
+    const selectEcl = document.getElementById('select-ecl');
+    const qrCanvas = document.getElementById('qr-canvas');
+    const historyTbody = document.getElementById('history-tbody');
+    const recordCountEl = document.getElementById('record-count');
+
+    // Preset Logo SMPN 90 Jakarta dalam bentuk Vector SVG terintegrasi (tanpa link eksternal yang rentan putus)
+    const SMP90_SVG = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="400" height="480">
+        <!-- Shield Background -->
+        <path d="M 200 460 C 130 420 20 330 20 180 L 20 50 C 120 40 160 10 200 10 C 240 10 280 40 380 50 L 380 180 C 380 330 270 420 200 460 Z" fill="#0275d8" stroke="#fbc02d" stroke-width="14"/>
+        <!-- Inner Border -->
+        <path d="M 200 440 C 140 400 38 318 38 180 L 38 65 C 130 55 165 26 200 26 C 235 26 270 55 362 65 L 362 180 C 362 318 260 400 200 440 Z" fill="#0056b3"/>
+        <!-- Monas Tower Silhouette -->
+        <path d="M 194 90 L 206 90 L 204 260 L 196 260 Z" fill="#ffffff"/>
+        <polygon points="175,270 225,270 235,310 165,310" fill="#ffffff"/>
+        <circle cx="200" cy="80" r="12" fill="#ffd700"/>
+        <!-- Big Number 90 -->
+        <text x="135" y="240" font-family="Montserrat, Arial, sans-serif" font-size="105" font-weight="900" fill="#ffffff" text-anchor="middle">9</text>
+        <text x="265" y="240" font-family="Montserrat, Arial, sans-serif" font-size="105" font-weight="900" fill="#ffffff" text-anchor="middle">0</text>
+        <!-- Open Book at bottom -->
+        <path d="M 110 320 Q 200 310 200 350 Q 200 310 290 320 L 290 355 Q 200 345 200 385 Q 200 345 110 355 Z" fill="#ffffff" stroke="#003566" stroke-width="3"/>
+        <line x1="200" y1="350" x2="200" y2="385" stroke="#003566" stroke-width="4"/>
+        <!-- Text Header -->
+        <path id="curve" d="M 75 110 Q 200 65 325 110" fill="transparent"/>
+        <text font-family="Montserrat, Arial, sans-serif" font-size="28" font-weight="900" fill="#ffffff">
+          <textPath href="#curve" startOffset="50%" text-anchor="middle">SMP NEGERI 90</textPath>
+        </text>
+        <!-- Ribbon Jakarta -->
+        <path d="M 110 405 L 290 405 L 275 435 L 125 435 Z" fill="#002147" stroke="#ffffff" stroke-width="2"/>
+        <text x="200" y="427" font-family="Montserrat, Arial, sans-serif" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="3">JAKARTA</text>
+      </svg>
+    `;
+
+    // Fungsi Pembantu Notifikasi Toast
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.textContent = message;
+      if (isError) {
+        toastIcon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-sm";
+      } else {
+        toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-sm";
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    // Load default SVG Logo ke Image Object
+    function loadSvgLogo(svgString) {
+      const img = new Image();
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const URL = window.URL || window.webkitURL || window;
+      const blobURL = URL.createObjectURL(svgBlob);
+
+      img.onload = function() {
+        currentLogoImage = img;
+        renderQRCode();
+      };
+      img.src = blobURL;
+    }
+
+    // Inisialisasi SQLite WebAssembly
+    async function initSQLite() {
+      try {
+        const config = {
+          locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+        };
+        SQL = await initSqlJs(config);
+        db = new SQL.Database();
+        
+        // Buat tabel arsip jika belum ada
+        db.run(`
+          CREATE TABLE IF NOT EXISTS qr_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content_url TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            logo_included INTEGER DEFAULT 1
+          );
+        `);
+
+        // Masukkan data awal preset jika kosong
+        const check = db.exec("SELECT COUNT(*) FROM qr_history");
+        if (check[0].values[0][0] === 0) {
+          db.run(`
+            INSERT INTO qr_history (title, content_url, created_at, logo_included)
+            VALUES ('Customer Service SMPN 90', 'http://smpn90.sch.id/cs/index.php', datetime('now', 'localtime'), 1);
+          `);
+        }
+
+        refreshHistoryTable();
+      } catch (err) {
+        console.error("Gagal inisialisasi SQLite:", err);
+        showToast("SQLite WebAssembly gagal dimuat. Mode in-memory terbatas aktif.", true);
+      }
+    }
+
+    // Render Ulang Tabel Riwayat SQLite
+    function refreshHistoryTable() {
+      if (!db) return;
+
+      try {
+        const res = db.exec("SELECT id, title, content_url, logo_included, created_at FROM qr_history ORDER BY id DESC");
+        historyTbody.innerHTML = '';
+
+        if (!res.length || !res[0].values.length) {
+          historyTbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="p-4 text-center text-slate-400">Belum ada riwayat tersimpan.</td>
+            </tr>
+          `;
+          recordCountEl.textContent = "0 Arsip tersimpan";
+          return;
+        }
+
+        const rows = res[0].values;
+        recordCountEl.textContent = `${rows.length} Arsip tersimpan`;
+
+        rows.forEach(row => {
+          const [id, title, url, hasLogo, createdAt] = row;
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+
+          tr.innerHTML = `
+            <td class="p-2.5 font-mono text-slate-500 font-bold">#${id}</td>
+            <td class="p-2.5 font-medium text-slate-800">${escapeHtml(title)}</td>
+            <td class="p-2.5 font-mono text-[11px] text-blue-600 truncate max-w-[200px]" title="${escapeHtml(url)}">${escapeHtml(url)}</td>
+            <td class="p-2.5">
+              ${hasLogo ? '<span class="px-2 py-0.5 rounded-full text-[10px] bg-blue-100 text-blue-800 font-medium">Ada</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600">Tidak</span>'}
+            </td>
+            <td class="p-2.5 text-slate-500 text-[11px] whitespace-nowrap">${createdAt}</td>
+            <td class="p-2.5 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="loadRecordIntoEditor(${id})" class="p-1 px-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs transition" title="Muat ke Generator">
+                  <i class="fa-solid fa-arrow-rotate-left"></i>
+                </button>
+                <button onclick="deleteRecord(${id})" class="p-1 px-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded text-xs transition" title="Hapus">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          historyTbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error("Gagal mengambil data dari SQLite:", e);
+      }
+    }
+
+    // Helper mencegah XSS
+    function escapeHtml(string) {
+      return String(string)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Muat arsip tertentu ke input editor
+    window.loadRecordIntoEditor = function(id) {
+      if (!db) return;
+      const stmt = db.prepare("SELECT title, content_url, logo_included FROM qr_history WHERE id = :id");
+      const record = stmt.getAsObject({ ':id': id });
+      stmt.free();
+
+      if (record && record.title) {
+        inputTitle.value = record.title;
+        inputUrl.value = record.content_url;
+        toggleLogo.checked = record.logo_included === 1;
+        logoOptionsContainer.style.display = toggleLogo.checked ? 'block' : 'none';
+        renderQRCode();
+        showToast(`Memuat rancangan "${record.title}"`);
+      }
+    };
+
+    // Hapus Arsip SQLite
+    window.deleteRecord = function(id) {
+      if (!db) return;
+      db.run("DELETE FROM qr_history WHERE id = ?", [id]);
+      refreshHistoryTable();
+      showToast("Arsip berhasil dihapus");
+    };
+
+    // Mesin Utama Render QR Code ke Canvas Resolusi Tinggi (1200x1200px)
+    function renderQRCode() {
+      const urlText = inputUrl.value.trim() || 'http://smpn90.sch.id/cs/index.php';
+      const showScanMe = checkShowScanme.checked;
+      const showUrl = checkShowUrl.checked;
+      const useLogo = toggleLogo.checked;
+      const ecl = selectEcl.value; // H, Q, M, L
+      const logoPercent = parseInt(logoSizeSlider.value, 10) / 100;
+
+      // 1. Buat Matrix QR menggunakan qrcode-generator
+      // Type 0 = auto-detect modul terkecil yang muat
+      let qr;
+      try {
+        qr = qrcode(0, ecl);
+        qr.addData(urlText);
+        qr.make();
+      } catch (err) {
+        console.warn("Gagal membuat QR type auto, fallback ke type 10:", err);
+        try {
+          qr = qrcode(10, ecl);
+          qr.addData(urlText);
+          qr.make();
+        } catch (e2) {
+          showToast("Data URL terlalu panjang untuk QR tipe ini.", true);
+          return;
+        }
+      }
+
+      // 2. Setup Canvas Resolusi Tinggi (1200 x 1200 px) -> Pas untuk cetak 10x10 cm pada 300 DPI
+      const canvasSize = 1200;
+      qrCanvas.width = canvasSize;
+      qrCanvas.height = canvasSize;
+      const ctx = qrCanvas.getContext('2d');
+
+      // Bersihkan kanvas dengan warna putih bersih
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+      // Hitung alokasi vertikal
+      let reservedBottomHeight = 0;
+      if (showScanMe && showUrl) {
+        reservedBottomHeight = 220;
+      } else if (showScanMe || showUrl) {
+        reservedBottomHeight = 160;
+      }
+
+      const qrAreaSize = canvasSize - reservedBottomHeight - 120; // Margin atas & bawah
+      const moduleCount = qr.getModuleCount();
+      const cellSize = Math.floor(qrAreaSize / moduleCount);
+      const actualQrWidth = cellSize * moduleCount;
+
+      // Posisi tengah matriks QR
+      const startX = Math.floor((canvasSize - actualQrWidth) / 2);
+      const startY = 60 + Math.floor((qrAreaSize - actualQrWidth) / 2);
+
+      // Gambar Modul QR (Hitam Pekat)
+      ctx.fillStyle = '#000000';
+      for (let r = 0; r < moduleCount; r++) {
+        for (let c = 0; c < moduleCount; c++) {
+          if (qr.isDark(r, c)) {
+            ctx.fillRect(startX + c * cellSize, startY + r * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+
+      // 3. Tambahkan Logo di Tengah (Jika diaktifkan)
+      if (useLogo && currentLogoImage) {
+        const logoSize = Math.floor(actualQrWidth * logoPercent);
+        const logoX = Math.floor(startX + (actualQrWidth - logoSize) / 2);
+        const logoY = Math.floor(startY + (actualQrWidth - logoSize) / 2);
+
+        // Berikan bantalan (badge) putih melengkung di belakang logo agar modul QR tidak bertabrakan
+        const pad = Math.floor(logoSize * 0.12);
+        const badgeX = logoX - pad;
+        const badgeY = logoY - pad;
+        const badgeSize = logoSize + (pad * 2);
+        const radius = Math.floor(badgeSize * 0.18);
+
+        ctx.fillStyle = '#ffffff';
+        drawRoundedRect(ctx, badgeX, badgeY, badgeSize, badgeSize, radius);
+        ctx.fill();
+
+        // Garis batas tipis pada badge
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 4;
+        drawRoundedRect(ctx, badgeX, badgeY, badgeSize, badgeSize, radius);
+        ctx.stroke();
+
+        // Gambar Logo
+        try {
+          ctx.drawImage(currentLogoImage, logoX, logoY, logoSize, logoSize);
+        } catch (e) {
+          console.error("Gagal menggambar logo ke canvas:", e);
+        }
+      }
+
+      // 4. Gambar Teks Bawah ("SCAN ME" dan/atau URL)
+      let textCurrentY = startY + actualQrWidth + 55;
+
+      if (showScanMe) {
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '900 64px "Montserrat", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '4px';
+        ctx.fillText("SCAN ME", canvasSize / 2, textCurrentY);
+        textCurrentY += 60;
+      }
+
+      if (showUrl) {
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '700 36px "Inter", monospace, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '1px';
+        // Potong tampilan jika terlalu panjang
+        const displayUrl = urlText.length > 45 ? urlText.substring(0, 42) + '...' : urlText;
+        ctx.fillText(displayUrl, canvasSize / 2, textCurrentY);
+      }
+    }
+
+    // Fungsi Pembantu Gambar Persegi Sudut Membulat
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    // Event Listeners
+    inputUrl.addEventListener('input', renderQRCode);
+    checkShowScanme.addEventListener('change', renderQRCode);
+    checkShowUrl.addEventListener('change', renderQRCode);
+    selectEcl.addEventListener('change', renderQRCode);
+
+    logoSizeSlider.addEventListener('input', (e) => {
+      logoSizeVal.textContent = `${e.target.value}%`;
+      renderQRCode();
+    });
+
+    toggleLogo.addEventListener('change', (e) => {
+      logoOptionsContainer.style.display = e.target.checked ? 'block' : 'none';
+      renderQRCode();
+    });
+
+    // Preset Logo SMPN 90
+    document.getElementById('btn-preset-smp').addEventListener('click', () => {
+      loadSvgLogo(SMP90_SVG);
+      showToast("Logo SMP Negeri 90 diterapkan");
+    });
+
+    // Custom File Logo Upload
+    document.getElementById('file-logo').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          currentLogoImage = img;
+          renderQRCode();
+          showToast(`Logo kustom "${file.name}" berhasil dipasang`);
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Tombol Perbarui Manual
+    document.getElementById('btn-generate').addEventListener('click', () => {
+      renderQRCode();
+      showToast("Tampilan QR berhasil diperbarui");
+    });
+
+    // Tombol Reset ke Default
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      inputUrl.value = "http://smpn90.sch.id/cs/index.php";
+      inputTitle.value = "Customer Service SMPN 90";
+      toggleLogo.checked = true;
+      logoOptionsContainer.style.display = 'block';
+      checkShowScanme.checked = true;
+      checkShowUrl.checked = false; // Default disembunyikan sesuai permintaan
+      logoSizeSlider.value = 22;
+      logoSizeVal.textContent = "22%";
+      selectEcl.value = 'H';
+      loadSvgLogo(SMP90_SVG);
+      showToast("Pengaturan dikembalikan ke nilai awal");
+    });
+
+    // Simpan ke SQLite Database
+    document.getElementById('btn-save-db').addEventListener('click', () => {
+      if (!db) {
+        showToast("Database SQLite belum siap.", true);
+        return;
+      }
+
+      const title = inputTitle.value.trim() || 'QR Code Tanpa Judul';
+      const url = inputUrl.value.trim() || 'http://smpn90.sch.id/cs/index.php';
+      const hasLogo = toggleLogo.checked ? 1 : 0;
+
+      try {
+        db.run(
+          "INSERT INTO qr_history (title, content_url, created_at, logo_included) VALUES (?, ?, datetime('now', 'localtime'), ?)",
+          [title, url, hasLogo]
+        );
+        refreshHistoryTable();
+        showToast("Rancangan berhasil disimpan ke database SQLite!");
+      } catch (err) {
+        console.error("Gagal simpan ke DB:", err);
+        showToast("Gagal menyimpan ke basis data", true);
+      }
+    });
+
+    // Ekspor Database SQLite ke File Fisik (.sqlite)
+    document.getElementById('btn-export-db').addEventListener('click', () => {
+      if (!db) return;
+      try {
+        const binaryArray = db.export();
+        const blob = new Blob([binaryArray], { type: 'application/octet-stream' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `smpn90_qrcodes_${new Date().toISOString().slice(0,10)}.sqlite`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast("File SQLite berhasil diunduh!");
+      } catch (e) {
+        console.error("Gagal ekspor database:", e);
+        showToast("Gagal mengekspor file SQLite", true);
+      }
+    });
+
+    // Impor Database SQLite dari File (.sqlite / .db)
+    document.getElementById('file-import-db').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function() {
+        try {
+          const uInt8Array = new Uint8Array(this.result);
+          db = new SQL.Database(uInt8Array);
+          refreshHistoryTable();
+          showToast(`Database "${file.name}" berhasil diimpor!`);
+        } catch (err) {
+          console.error("Format DB salah:", err);
+          showToast("File bukan database SQLite valid.", true);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Unduh File PNG Resolusi Tinggi (10x10 cm - 1200x1200px)
+    document.getElementById('btn-download-png').addEventListener('click', () => {
+      renderQRCode();
+      const a = document.createElement('a');
+      a.download = `QRCode_SMPN90_10x10cm_${Date.now()}.png`;
+      a.href = qrCanvas.toDataURL('image/png', 1.0);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("QR Code 10x10 cm berhasil diunduh!");
+    });
+
+    // Cetak Dokumen Presisi 10x10 cm
+    document.getElementById('btn-print').addEventListener('click', () => {
+      renderQRCode();
+      window.print();
+    });
+
+    // Tombol Uji Langsung Tautan Web
+    document.getElementById('btn-test-scan').addEventListener('click', () => {
+      const url = inputUrl.value.trim();
+      if (!url) return;
+      window.open(url, '_blank');
+    });
+
+    // Start Up
+    window.addEventListener('load', () => {
+      loadSvgLogo(SMP90_SVG);
+      initSQLite();
+    });
+  </script>
+</body>
+</html>
